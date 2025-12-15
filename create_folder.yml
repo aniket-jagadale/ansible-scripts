@@ -1,0 +1,10 @@
+# create a folder
+---
+- name : create a folder
+  hosts: localhost
+  tasks:
+    - name: create a folder named aws in /home/ec2-user directory
+      ansible.builtin.file:
+        path: /home/ec2-user/aws
+        state: directory
+        mode: '0700'

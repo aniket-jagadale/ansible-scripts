@@ -1,0 +1,21 @@
+# http installation
+---
+- name: install,start,enable httpd 
+  hosts: localhost
+  become: yes #to assign sudo privileges
+  tasks:
+    - name: install httpd
+      ansible.builtin.dnf:
+        name: httpd #package name
+        state: present #to ensure package is installed
+    # start and enable httpd service
+    - name: start httpd service
+      ansible.builtin.systemd_service:
+        name: httpd
+        state: started
+        enabled: true
+    #deploy index.html file
+    - name: deploy index.html file
+      ansible.builtin.copy:
+        dest: /var/www/html/index.html
+        content: "<h1><b>Welcome to Aniket's Web Server</b></h1>"

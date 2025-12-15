@@ -1,0 +1,10 @@
+---
+#copy file -> /root/ansible.txt -> /home/ec2-user/aws/ansible.txt
+- name: copy file to aws folder
+  hosts: localhost
+  tasks:
+    - name: copy ansible.txt to /home/ec2-user/aws directory
+      ansible.builtin.copy:
+        src: /root/ansible.txt
+        dest: /home/ec2-user/aws/ansible.txt
+        

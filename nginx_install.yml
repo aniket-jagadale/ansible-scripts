@@ -1,0 +1,26 @@
+# nginx installation
+---
+- name: install,start,enable nginx 
+  hosts: localhost
+  become: yes #to assign sudo privileges
+  tasks:
+    - name: install nginx
+      ansible.builtin.dnf:
+        name: nginx #package name
+        state: present #to ensure package is installed
+    # start and enable nginx service
+    - name: stop httpd service if running
+      ansible.builtin.systemd_service:
+        name: httpd
+        state: stopped
+        enabled: false
+    - name: start nginx service
+      ansible.builtin.systemd_service:
+        name: nginx
+        state: started
+        enabled: true
+    #deploy index.html file
+    - name: deploy index.html file
+      ansible.builtin.copy:
+        dest: /usr/share/nginx/html/index.html
+        content: "<h1><b>Welcome to Aniket's Nginx Web Server</b></h1>"

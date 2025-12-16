@@ -22,5 +22,5 @@
     #deploy index.html file
     - name: deploy index.html file
       ansible.builtin.copy:
-        dest: /usr/share/nginx/html/index.html
+        dest: /usr/share/nginx/html/index.php
         content: "<h1><b>Welcome to Aniket's Nginx Web Server</b></h1>"

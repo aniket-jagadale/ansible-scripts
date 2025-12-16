@@ -1,0 +1,55 @@
+# lemp into lamp -> amazonlinux2
+# nginx , mariadb105-server, php , php-fpm installation with variables
+---
+- name: convert lemp to lamp stack using variables
+  hosts: localhost
+  become: yes #to assign sudo privileges
+  # define variables and assign values
+  vars:
+    web_server: httpd
+    db_server: mariadb105-server
+    php_packages:
+      - php
+      - php-fpm
+    web_service : httpd
+    db_service : mariadb
+    php_service : php-fpm
+    web_file_path: /var/www/html/index.php
+    web_stop_service: nginx
+  tasks:
+    - name: stop nginx service if running # to stop nginx before installing httpd
+      ansible.builtin.systemd_service:
+        name: "{{ web_stop_service }}" 
+        state: stopped
+        enabled: false
+    - name: install httpd   #install httpd
+      ansible.builtin.dnf:
+        name: "{{ web_server }}" 
+        state: present
+    - name: install mariadb105-server #install mariadb105-server
+      ansible.builtin.dnf:
+        name: "{{ db_server }}" 
+        state: present
+    - name: install php and php-fpm #install php and php-fpm
+      ansible.builtin.dnf:
+        name: "{{ php_packages }}" 
+        state: present
+    - name: start and enable httpd service # start and enable httpd service
+      ansible.builtin.systemd_service:
+        name: "{{ web_service }}" 
+        state: started
+        enabled: true
+    - name: start and enable mariadb service # start and enable mariadb service
+      ansible.builtin.systemd_service:
+        name: "{{ db_service }}" 
+        state: started
+        enabled: true
+    - name: start and enable php-fpm service # start and enable php-fpm service
+      ansible.builtin.systemd_service:
+        name: "{{ php_service }}" 
+        state: started
+        enabled: true
+    - name: deploy index.php file #deploy index.php file
+      ansible.builtin.copy:
+        dest: "{{ web_file_path }}" 
+        content: "<?php phpinfo(); ?>"

@@ -1,0 +1,49 @@
+# lemp -> amazonlinux2
+# nginx , mariadb105-server, php , php-fpm installation with variables
+---
+- name: install lemp stack using variables
+  hosts: localhost
+  become: yes #to assign sudo privileges
+  # define variables and assign values
+  vars:
+    web_server: nginx
+    db_server: mariadb105-server
+    php_packages:
+      - php
+      - php-fpm
+    web_service : nginx
+    db_service : mariadb
+    php_service : php-fpm
+    web_file_path: /usr/share/nginx/html/index.php
+  tasks:
+    - name: nginx
+      ansible.builtin.dnf:
+        name: "{{ web_server }}" # variable call
+        state: present
+    - name: mariadb105-server
+      ansible.builtin.dnf:
+        name: "{{ db_server }}" # variable call
+        state: present
+    - name: php and php-fpm
+      ansible.builtin.dnf:
+        name: "{{ php_packages }}" # variable call
+        state: present
+    - name: start and enable nginx service
+      ansible.builtin.systemd_service:
+        name: "{{ web_service }}" # variable call
+        state: started
+        enabled: true
+    - name: start and enable mariadb service
+      ansible.builtin.systemd_service:
+        name: "{{ db_service }}" # variable call
+        state: started
+        enabled: true
+    - name: start and enable php-fpm service
+      ansible.builtin.systemd_service:
+        name: "{{ php_service }}" # variable call
+        state: started
+        enabled: true
+    - name: deploy index.php file
+      ansible.builtin.copy:
+        dest: "{{ web_file_path }}" # variable call
+        content: "<?php <h1><b>welcome to ANDY's server </b></h1> ?>"

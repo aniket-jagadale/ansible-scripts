@@ -25,3 +25,4 @@
       ansible.builtin.copy:
         dest: /usr/share/nginx/html/index.php
         content: "<?php phpinfo(); ?>"
+        

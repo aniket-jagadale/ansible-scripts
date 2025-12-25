@@ -1,0 +1,56 @@
+# deployement of a 2-tier web application architecture on AWS'
+---
+- name: installation of appserver
+  hosts: appservers
+  become: yes
+  vars:
+    packages:
+      - nginx
+      - php
+      - php-fpm
+    services:
+      - nginx
+      - php-fpm
+    web_file_path: /usr/share/nginx/html/index.php
+  tasks:
+    - name: install nginx and php packages
+      ansible.builtin.dnf:
+        name: "{{ packages }}"
+        state: present
+    - name: start and enable nginx and php-fpm services
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      loop: "{{ services }}"
+    - name: deploy index.php file
+      ansible.builtin.copy:
+        dest: "{{ web_file_path }}"
+        content: "<?php phpInfo(); ?>"
+# This use for dbserver installation     
+- name: installation of dbserver
+  hosts: dbservers
+  become: yes
+  vars:
+    packages:
+      - mariadb105-server
+    services:
+      - mariadb
+    db_name: ANDY_DB
+  tasks:
+  # install mariadb package 
+    - name: install mariadb package
+      ansible.builtin.dnf:
+        name: "{{ packages }}"
+        state: present
+  # start and enable mariadb service
+    - name: start and enable mariadb service
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      loop: "{{ services }}"
+    - name: create database
+      ansible.builtin.shell: |
+       mysql -u root -e "CREATE DATABASE IF NOT EXISTS {{ db_name }} ;"
+

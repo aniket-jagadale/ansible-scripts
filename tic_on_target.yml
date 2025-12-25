@@ -1,0 +1,634 @@
+---
+- name: TIC on Target Server
+  hosts: targetservers
+  become: yes
+  tasks:
+    - name: deploy tic_tok_toe.php file
+      ansible.builtin.copy:
+        dest: /var/www/html/tic_tok_toe.php
+        content: |
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Glamour & Horror Tic-Tac-Toe</title>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+              <style>
+                  * {
+                      margin: 0;
+                      padding: 0;
+                      box-sizing: border-box;
+                      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                  }
+
+                  body {
+                      background: linear-gradient(135deg, #0c0a0e 0%, #1a1523 50%, #0c0a0e 100%);
+                      color: #f0e6d6;
+                      min-height: 100vh;
+                      display: flex;
+                      flex-direction: column;
+                      align-items: center;
+                      justify-content: center;
+                      padding: 20px;
+                      overflow-x: hidden;
+                      position: relative;
+                  }
+
+                  body::before {
+                      content: '';
+                      position: fixed;
+                      top: 0;
+                      left: 0;
+                      width: 100%;
+                      height: 100%;
+                      background-image: 
+                          radial-gradient(circle at 15% 50%, rgba(120, 0, 50, 0.15) 0%, transparent 20%),
+                          radial-gradient(circle at 85% 30%, rgba(90, 20, 120, 0.1) 0%, transparent 20%);
+                      z-index: -1;
+                  }
+
+                  .header {
+                      text-align: center;
+                      margin-bottom: 30px;
+                      position: relative;
+                      z-index: 1;
+                  }
+
+                  h1 {
+                      font-size: 3.5rem;
+                      margin-bottom: 10px;
+                      text-transform: uppercase;
+                      letter-spacing: 3px;
+                      background: linear-gradient(to right, #d4af37, #b08d57, #a97155);
+                      -webkit-background-clip: text;
+                      background-clip: text;
+                      color: transparent;
+                      text-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+                      position: relative;
+                  }
+
+                  h1::after {
+                      content: '';
+                      position: absolute;
+                      bottom: -10px;
+                      left: 50%;
+                      transform: translateX(-50%);
+                      width: 200px;
+                      height: 3px;
+                      background: linear-gradient(to right, transparent, #d4af37, transparent);
+                  }
+
+                  .tagline {
+                      font-size: 1.2rem;
+                      color: #b8a28a;
+                      font-style: italic;
+                      margin-top: 5px;
+                      letter-spacing: 1px;
+                  }
+
+                  .game-container {
+                      display: flex;
+                      flex-wrap: wrap;
+                      justify-content: center;
+                      gap: 40px;
+                      max-width: 1200px;
+                      width: 100%;
+                  }
+
+                  .game-board {
+                      background: rgba(20, 15, 30, 0.8);
+                      border-radius: 15px;
+                      padding: 25px;
+                      box-shadow: 
+                          0 0 30px rgba(180, 0, 70, 0.2),
+                          inset 0 0 20px rgba(0, 0, 0, 0.5);
+                      border: 1px solid #3a2c50;
+                      position: relative;
+                      overflow: hidden;
+                  }
+
+                  .game-board::before {
+                      content: '';
+                      position: absolute;
+                      top: -50%;
+                      left: -50%;
+                      width: 200%;
+                      height: 200%;
+                      background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
+                      z-index: -1;
+                  }
+
+                  .board {
+                      display: grid;
+                      grid-template-columns: repeat(3, 1fr);
+                      grid-gap: 10px;
+                      margin: 0 auto;
+                      width: 350px;
+                      height: 350px;
+                  }
+
+                  .cell {
+                      background: rgba(40, 30, 60, 0.7);
+                      border-radius: 8px;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      font-size: 4rem;
+                      font-weight: bold;
+                      cursor: pointer;
+                      transition: all 0.3s ease;
+                      border: 2px solid #4a3a70;
+                      position: relative;
+                      overflow: hidden;
+                  }
+
+                  .cell:hover {
+                      background: rgba(70, 50, 100, 0.8);
+                      border-color: #d4af37;
+                      transform: translateY(-3px);
+                      box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
+                  }
+
+                  .cell.x {
+                      color: #e74c3c;
+                      text-shadow: 0 0 10px rgba(231, 76, 60, 0.7);
+                  }
+
+                  .cell.o {
+                      color: #3498db;
+                      text-shadow: 0 0 10px rgba(52, 152, 219, 0.7);
+                  }
+
+                  .cell.winning {
+                      background: rgba(212, 175, 55, 0.2);
+                      border-color: #d4af37;
+                      box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+                  }
+
+                  .game-info {
+                      background: rgba(20, 15, 30, 0.8);
+                      border-radius: 15px;
+                      padding: 25px;
+                      width: 300px;
+                      box-shadow: 
+                          0 0 30px rgba(52, 152, 219, 0.2),
+                          inset 0 0 20px rgba(0, 0, 0, 0.5);
+                      border: 1px solid #3a2c50;
+                      position: relative;
+                      overflow: hidden;
+                  }
+
+                  .game-info::before {
+                      content: '';
+                      position: absolute;
+                      top: -50%;
+                      right: -50%;
+                      width: 200%;
+                      height: 200%;
+                      background: radial-gradient(circle, rgba(52, 152, 219, 0.05) 0%, transparent 70%);
+                      z-index: -1;
+                  }
+
+                  .player-info {
+                      margin-bottom: 25px;
+                      text-align: center;
+                  }
+
+                  .player-turn {
+                      font-size: 1.8rem;
+                      margin-bottom: 15px;
+                      color: #d4af37;
+                      text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+                      padding: 10px;
+                      border-radius: 8px;
+                      background: rgba(0, 0, 0, 0.3);
+                  }
+
+                  .player-x, .player-o {
+                      display: flex;
+                      align-items: center;
+                      justify-content: space-between;
+                      padding: 12px;
+                      margin: 10px 0;
+                      border-radius: 8px;
+                      background: rgba(40, 30, 60, 0.5);
+                      border-left: 4px solid;
+                  }
+
+                  .player-x {
+                      border-left-color: #e74c3c;
+                  }
+
+                  .player-o {
+                      border-left-color: #3498db;
+                  }
+
+                  .player-icon {
+                      font-size: 1.5rem;
+                      margin-right: 10px;
+                  }
+
+                  .score {
+                      font-size: 1.8rem;
+                      font-weight: bold;
+                  }
+
+                  .controls {
+                      display: flex;
+                      flex-direction: column;
+                      gap: 15px;
+                      margin-top: 25px;
+                  }
+
+                  button {
+                      padding: 14px;
+                      border: none;
+                      border-radius: 8px;
+                      font-size: 1.1rem;
+                      font-weight: bold;
+                      cursor: pointer;
+                      transition: all 0.3s ease;
+                      text-transform: uppercase;
+                      letter-spacing: 1px;
+                  }
+
+                  .reset-btn {
+                      background: linear-gradient(to right, #8b0000, #b22222);
+                      color: #f0e6d6;
+                      box-shadow: 0 5px 15px rgba(139, 0, 0, 0.4);
+                  }
+
+                  .reset-btn:hover {
+                      background: linear-gradient(to right, #b22222, #dc143c);
+                      transform: translateY(-3px);
+                      box-shadow: 0 8px 20px rgba(139, 0, 0, 0.6);
+                  }
+
+                  .new-game-btn {
+                      background: linear-gradient(to right, #3a2c50, #5d4b8d);
+                      color: #f0e6d6;
+                      box-shadow: 0 5px 15px rgba(58, 44, 80, 0.4);
+                  }
+
+                  .new-game-btn:hover {
+                      background: linear-gradient(to right, #5d4b8d, #7a6ba8);
+                      transform: translateY(-3px);
+                      box-shadow: 0 8px 20px rgba(58, 44, 80, 0.6);
+                  }
+
+                  .message {
+                      margin-top: 20px;
+                      padding: 15px;
+                      border-radius: 8px;
+                      text-align: center;
+                      font-size: 1.3rem;
+                      font-weight: bold;
+                      min-height: 60px;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      background: rgba(0, 0, 0, 0.3);
+                      border: 1px solid #3a2c50;
+                  }
+
+                  .message.win {
+                      color: #d4af37;
+                      text-shadow: 0 0 10px rgba(212, 175, 55, 0.7);
+                      border-color: #d4af37;
+                      background: rgba(212, 175, 55, 0.1);
+                  }
+
+                  .message.draw {
+                      color: #95a5a6;
+                      border-color: #95a5a6;
+                      background: rgba(149, 165, 166, 0.1);
+                  }
+
+                  .decorations {
+                      position: fixed;
+                      width: 100%;
+                      height: 100%;
+                      pointer-events: none;
+                      z-index: -1;
+                  }
+
+                  .spider-web {
+                      position: absolute;
+                      top: 20px;
+                      right: 20px;
+                      width: 100px;
+                      height: 100px;
+                      opacity: 0.1;
+                      transform: rotate(45deg);
+                  }
+
+                  .cobweb {
+                      position: absolute;
+                      bottom: 20px;
+                      left: 20px;
+                      width: 80px;
+                      height: 80px;
+                      opacity: 0.1;
+                      transform: rotate(-45deg);
+                  }
+
+                  .skull {
+                      position: absolute;
+                      bottom: 30px;
+                      right: 30px;
+                      font-size: 2rem;
+                      color: #d4af37;
+                      opacity: 0.1;
+                      transform: rotate(15deg);
+                  }
+
+                  .candle {
+                      position: absolute;
+                      top: 30px;
+                      left: 30px;
+                      font-size: 2rem;
+                      color: #e74c3c;
+                      opacity: 0.1;
+                      transform: rotate(-15deg);
+                  }
+
+                  .instructions {
+                      margin-top: 30px;
+                      text-align: center;
+                      max-width: 800px;
+                      background: rgba(20, 15, 30, 0.7);
+                      padding: 20px;
+                      border-radius: 10px;
+                      border: 1px solid #3a2c50;
+                  }
+
+                  .instructions h3 {
+                      color: #d4af37;
+                      margin-bottom: 10px;
+                      font-size: 1.5rem;
+                  }
+
+                  .instructions p {
+                      color: #b8a28a;
+                      line-height: 1.6;
+                  }
+
+                  @media (max-width: 900px) {
+                      .game-container {
+                          flex-direction: column;
+                          align-items: center;
+                      }
+                      
+                      .game-info {
+                          width: 350px;
+                      }
+                      
+                      h1 {
+                          font-size: 2.5rem;
+                      }
+                  }
+
+                  @media (max-width: 500px) {
+                      .board {
+                          width: 300px;
+                          height: 300px;
+                      }
+                      
+                      .cell {
+                          font-size: 3.5rem;
+                      }
+                      
+                      .game-info, .game-board {
+                          width: 100%;
+                          max-width: 350px;
+                      }
+                      
+                      h1 {
+                          font-size: 2rem;
+                      }
+                  }
+              </style>
+          </head>
+          <body>
+              <?php
+              // Initialize or retrieve game state from session
+              session_start();
+              
+              // Set up game if not already set
+              if (!isset($_SESSION['board'])) {
+                  $_SESSION['board'] = array_fill(0, 9, '');
+                  $_SESSION['current_player'] = 'X';
+                  $_SESSION['game_over'] = false;
+                  $_SESSION['winner'] = null;
+                  $_SESSION['winning_cells'] = [];
+                  $_SESSION['score_x'] = 0;
+                  $_SESSION['score_o'] = 0;
+                  $_SESSION['draws'] = 0;
+              }
+              
+              // Handle reset button
+              if (isset($_POST['reset'])) {
+                  $_SESSION['board'] = array_fill(0, 9, '');
+                  $_SESSION['current_player'] = 'X';
+                  $_SESSION['game_over'] = false;
+                  $_SESSION['winner'] = null;
+                  $_SESSION['winning_cells'] = [];
+              }
+              
+              // Handle new game button (reset scores too)
+              if (isset($_POST['new_game'])) {
+                  $_SESSION['board'] = array_fill(0, 9, '');
+                  $_SESSION['current_player'] = 'X';
+                  $_SESSION['game_over'] = false;
+                  $_SESSION['winner'] = null;
+                  $_SESSION['winning_cells'] = [];
+                  $_SESSION['score_x'] = 0;
+                  $_SESSION['score_o'] = 0;
+                  $_SESSION['draws'] = 0;
+              }
+              
+              // Handle cell clicks
+              if (isset($_POST['cell']) && !$_SESSION['game_over']) {
+                  $cell = (int)$_POST['cell'];
+                  
+                  // Only process if cell is empty
+                  if ($_SESSION['board'][$cell] === '') {
+                      $_SESSION['board'][$cell] = $_SESSION['current_player'];
+                      
+                      // Check for win
+                      $winning_combinations = [
+                          [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+                          [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+                          [0, 4, 8], [2, 4, 6]             // diagonals
+                      ];
+                      
+                      foreach ($winning_combinations as $combo) {
+                          if ($_SESSION['board'][$combo[0]] !== '' &&
+                              $_SESSION['board'][$combo[0]] === $_SESSION['board'][$combo[1]] &&
+                              $_SESSION['board'][$combo[0]] === $_SESSION['board'][$combo[2]]) {
+                              
+                              $_SESSION['game_over'] = true;
+                              $_SESSION['winner'] = $_SESSION['current_player'];
+                              $_SESSION['winning_cells'] = $combo;
+                              
+                              // Update score
+                              if ($_SESSION['current_player'] === 'X') {
+                                  $_SESSION['score_x']++;
+                              } else {
+                                  $_SESSION['score_o']++;
+                              }
+                              
+                              break;
+                          }
+                      }
+                      
+                      // Check for draw
+                      if (!$_SESSION['game_over']) {
+                          $is_draw = true;
+                          foreach ($_SESSION['board'] as $cell_value) {
+                              if ($cell_value === '') {
+                                  $is_draw = false;
+                                  break;
+                              }
+                          }
+                          
+                          if ($is_draw) {
+                              $_SESSION['game_over'] = true;
+                              $_SESSION['winner'] = 'draw';
+                              $_SESSION['draws']++;
+                          }
+                      }
+                      
+                      // Switch player if game not over
+                      if (!$_SESSION['game_over']) {
+                          $_SESSION['current_player'] = $_SESSION['current_player'] === 'X' ? 'O' : 'X';
+                      }
+                  }
+              }
+              
+              // Extract variables for easier use in HTML
+              $board = $_SESSION['board'];
+              $current_player = $_SESSION['current_player'];
+              $game_over = $_SESSION['game_over'];
+              $winner = $_SESSION['winner'];
+              $winning_cells = $_SESSION['winning_cells'];
+              $score_x = $_SESSION['score_x'];
+              $score_o = $_SESSION['score_o'];
+              $draws = $_SESSION['draws'];
+              ?>
+              
+              <div class="header">
+                  <h1><i class="fas fa-ghost"></i> Glamour & Horror <i class="fas fa-gem"></i></h1>
+                  <h1>Tic-Tac-Toe</h1>
+                  <div class="tagline">Where elegance meets the eerie</div>
+              </div>
+              
+              <div class="game-container">
+                  <div class="game-board">
+                      <form method="POST">
+                          <div class="board">
+                              <?php for ($i = 0; $i < 9; $i++): ?>
+                                  <?php
+                                  $cell_class = 'cell';
+                                  $cell_class .= $board[$i] === 'X' ? ' x' : ($board[$i] === 'O' ? ' o' : '');
+                                  $cell_class .= in_array($i, $winning_cells) ? ' winning' : '';
+                                  ?>
+                                  <button type="submit" name="cell" value="<?php echo $i; ?>" 
+                                          class="<?php echo $cell_class; ?>"
+                                          <?php echo $game_over || $board[$i] !== '' ? 'disabled' : ''; ?>>
+                                      <?php echo $board[$i]; ?>
+                                  </button>
+                              <?php endfor; ?>
+                          </div>
+                      </form>
+                  </div>
+                  
+                  <div class="game-info">
+                      <div class="player-info">
+                          <div class="player-turn">
+                              <?php if ($game_over): ?>
+                                  <?php if ($winner === 'draw'): ?>
+                                      Game Drawn!
+                                  <?php else: ?>
+                                      <?php echo $winner; ?> Wins!
+                                  <?php endif; ?>
+                              <?php else: ?>
+                                  Player <?php echo $current_player; ?>'s Turn
+                              <?php endif; ?>
+                          </div>
+                          
+                          <div class="player-x">
+                              <div>
+                                  <i class="fas fa-skull-crossbones player-icon"></i>
+                                  <span>Player X</span>
+                              </div>
+                              <div class="score"><?php echo $score_x; ?></div>
+                          </div>
+                          
+                          <div class="player-o">
+                              <div>
+                                  <i class="fas fa-moon player-icon"></i>
+                                  <span>Player O</span>
+                              </div>
+                              <div class="score"><?php echo $score_o; ?></div>
+                          </div>
+                          
+                          <div class="player-x" style="border-left-color: #95a5a6;">
+                              <div>
+                                  <i class="fas fa-handshake player-icon"></i>
+                                  <span>Draws</span>
+                              </div>
+                              <div class="score"><?php echo $draws; ?></div>
+                          </div>
+                      </div>
+                      
+                      <div class="message <?php echo $winner === 'draw' ? 'draw' : ($winner ? 'win' : ''); ?>">
+                          <?php if ($game_over): ?>
+                              <?php if ($winner === 'draw'): ?>
+                                  <span>The game is a draw! No one wins this round.</span>
+                              <?php else: ?>
+                                  <span>Player <?php echo $winner; ?> has won the game!</span>
+                              <?php endif; ?>
+                          <?php else: ?>
+                              <span>Make your move. The board awaits...</span>
+                          <?php endif; ?>
+                      </div>
+                      
+                      <div class="controls">
+                          <form method="POST">
+                              <button type="submit" name="reset" class="reset-btn">
+                                  <i class="fas fa-redo"></i> Reset Board
+                              </button>
+                          </form>
+                          
+                          <form method="POST">
+                              <button type="submit" name="new_game" class="new-game-btn">
+                                  <i class="fas fa-plus-circle"></i> New Game
+                              </button>
+                          </form>
+                      </div>
+                  </div>
+              </div>
+              
+              <div class="instructions">
+                  <h3>How to Play</h3>
+                  <p>Players take turns placing X and O marks on the 3×3 grid. The first player to get 3 of their marks in a row (horizontally, vertically, or diagonally) wins. If all 9 squares are filled without a winner, the game ends in a draw. The game keeps track of scores across multiple rounds.</p>
+              </div>
+              
+              <div class="decorations">
+                  <div class="spider-web">
+                      <i class="fas fa-spider fa-3x"></i>
+                  </div>
+                  <div class="cobweb">
+                      <i class="fas fa-web fa-3x"></i>
+                  </div>
+                  <div class="skull">
+                      <i class="fas fa-skull fa-3x"></i>
+                  </div>
+                  <div class="candle">
+                      <i class="fas fa-fire fa-3x"></i>
+                  </div>
+              </div>
+          </body>
+          </html>

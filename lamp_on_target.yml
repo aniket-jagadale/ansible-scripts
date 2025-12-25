@@ -1,0 +1,30 @@
+# install lamp on target server in optimized format
+---
+- name: install LAMP stack on target server
+  hosts: targetservers
+  become: yes #to assign sudo privileges
+  tasks:
+    - name: install httpd, mariadb105-server, php
+      ansible.builtin.dnf:
+        name:
+          - httpd
+          - mariadb105-server
+          - php
+        state: present
+    - name: stop and disable nginx service
+      ansible.builtin.systemd_service:
+        name: nginx
+        state: stopped
+        enabled: false
+    - name: start and enable httpd mariadb service
+      ansible.builtin.systemd_service:
+        name: "{{item}}"
+        state: started
+        enabled: true
+      loop:
+        - httpd    
+        - mariadb
+    - name: deploy index.html file
+      ansible.builtin.copy:
+        dest: /var/www/html/index.html
+        content: "<h1><b1>welcome to ANDY's LAMP SERVER</b1></h1>"

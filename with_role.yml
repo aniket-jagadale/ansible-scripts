@@ -1,0 +1,27 @@
+# install httpd by using a specific role
+---
+- name: Install httpd using a role
+  hosts: localhost
+  become: yes
+  roles:
+  - httpd 
+  vars:
+    - pkg: httpd
+    - svc: httpd
+    - file_path: /var/www/html
+  tasks:
+    - name: Include httpd installation role
+      ansible.builtin.dnf:
+        name: httpd install
+        state: present
+    # start and enable httpd service
+    - name: start httpd service
+      ansible.builtin.systemd_service:
+        name: httpd
+        state: started
+        enabled: true
+    #deploy index.html file
+    - name: deploy index.html file
+      ansible.builtin.copy:
+        src: files/index.html
+        dest: "{{ file_path }}/index.html"

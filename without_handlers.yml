@@ -1,0 +1,43 @@
+# install nginx without handlers
+- name: deployement of nginx without handlers
+  hosts: targetserver
+  become: yes
+  vars :
+    pkg: nginx
+    svc: nginx
+    file_path: /usr/share/nginx/html/index.html
+    conf_file: /etc/nginx/conf.d/custom.conf  # this is a variable for custom nginx configuration file
+  tasks:
+    # install nginx package
+    - name: install nginx
+      ansible.builtin.dnf:
+        name: "{{ pkg }}"
+        state: present
+    # start and enable nginx service
+    - name: start and enable nginx service
+      ansible.builtin.systemd_service:
+        name: "{{ svc }}"
+        state: started
+        enabled: yes
+    # add configuration file block
+    - name: add custom configuration file for nginx
+      ansible.builtin.blockinfile:
+        path: "{{ conf_file }}"
+        create: yes
+        block: |
+          http {
+              server {
+                  listen       80;              
+                  location / {
+                      root   /usr/share/nginx/html;
+                      index  index.html index.htm;
+                  }
+              }
+          }
+    # deploy index.html file
+    - name: deploye index.html file
+      ansible.builtin.copy:
+        dest: "{{ file_path }}"
+        content: "Welcome to Aniket's Nginx Server"    
+          
+              
